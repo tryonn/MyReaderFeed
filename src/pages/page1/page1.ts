@@ -8,6 +8,8 @@ import 'rxjs/add/operator/map';
 
 import { InAppBrowser } from 'ionic-native';// para abrir o browser do dispositivo
 
+import { RedditService } from '../../providers/reddit-service';// importando dados para nosso providers
+
 
 @Component({
   selector: 'page-page1',
@@ -27,7 +29,7 @@ export class Page1 {
   public noFilter: Array<any>;
   public hasFilter: boolean = false;
 
-  constructor(public navCtrl: NavController, public http: Http, public loadingCtrl: LoadingController, public actionSheetCtrl: ActionSheetController) {
+  constructor(public redditService: RedditService, public navCtrl: NavController, public http: Http, public loadingCtrl: LoadingController, public actionSheetCtrl: ActionSheetController) {
     this.fetchContent();
   }
 
@@ -38,8 +40,16 @@ export class Page1 {
 
     loading.present();
 
-    this.http.get(this.url).map(res => res.json())
-    .subscribe(data => {
+  // novo metodo para popula nossa lista de feeds
+    this.redditService.fetchData(this.url).then(data => {
+      this.feeds = data;
+      this.noFilter = this.feeds;
+      loading.dismiss();
+    })
+
+    /*
+      esse foi substituido pelo codigo acima
+    this.http.get(this.url).map(res => res.json()).subscribe(data => {
 
 
         this.feeds = data.data.children;
@@ -60,6 +70,7 @@ export class Page1 {
         loading.dismiss();
 
     });
+    */
   }
 
 
