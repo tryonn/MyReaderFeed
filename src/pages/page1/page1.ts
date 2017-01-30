@@ -28,6 +28,7 @@ export class Page1 {
 
   public noFilter: Array<any>;
   public hasFilter: boolean = false;
+  public searchTerm: string = '';
 
   constructor(public redditService: RedditService, public navCtrl: NavController, public http: Http, public loadingCtrl: LoadingController, public actionSheetCtrl: ActionSheetController) {
     this.fetchContent();
@@ -45,7 +46,7 @@ export class Page1 {
       this.feeds = data;
       this.noFilter = this.feeds;
       loading.dismiss();
-    })
+    });
 
     /*
       esse foi substituido pelo codigo acima
@@ -83,7 +84,17 @@ export class Page1 {
      let paramUrl = (this.feeds.length > 0) ? this.feeds[this.feeds.length - 1].data.name : " ";
      //let paramUrl = (this.feeds.length > 0) ? this.feeds[this.feeds.length - 1] : " ";
 
-      this.http.get(this.olderPosts + paramUrl).map(res => res.json()).subscribe(data => {
+    this.redditService.fetchData(this.olderPosts + paramUrl).then(data => {
+      this.feeds = this.feeds.concat(data);
+      // removendo filtro
+      this.noFilter = this.feeds;
+      this.hasFilter = false;
+
+      infiniteScroll.complete();
+
+    });
+
+     /* this.http.get(this.olderPosts + paramUrl).map(res => res.json()).subscribe(data => {
 
         this.feeds = this.feeds.concat(data.data.children);
         this.feeds.forEach((e, i, a) => {
@@ -104,6 +115,7 @@ export class Page1 {
 
             infiniteScroll.complete();
       });
+      */
   }
 
   doRefresh(refresher)
@@ -112,7 +124,17 @@ export class Page1 {
     //let paramUrl = this.feeds[0];
     //console.log(this.feeds[0].data.name);
 
-    this.http.get(this.newerPosts + paramUrl).map(res => res.json()).subscribe(data => {
+    this.redditService.fetchData(this.olderPosts + paramUrl).then(data => {
+      this.feeds = data.concat(this.feeds);
+      // removendo filtro
+    this.noFilter = this.feeds;
+    this.hasFilter = false;
+
+    refresher.complete();
+
+    })
+
+   /* this.http.get(this.newerPosts + paramUrl).map(res => res.json()).subscribe(data => {
         this.feeds = data.data.children.concat(this.feeds);
         this.feeds.forEach((e, i, a) => {
 
@@ -126,12 +148,13 @@ export class Page1 {
         })
 
     });
-
+  
         // removendo filtro
     this.noFilter = this.feeds;
     this.hasFilter = false;
 
     refresher.complete();
+    */
 
 
   }
@@ -171,6 +194,14 @@ export class Page1 {
     });
 
     actionSheet.present();
+  }
+
+  // metodo para pesquisa  item na lista
+  filterItems(){
+    this.hasFilter = false;
+    this.feeds = this.noFilter.filter((item) => {
+      return item.data.title.toLowerCase().indexOf(this.searchTerm.toLowerCase()) > -1;
+    });
   }
 
 }
